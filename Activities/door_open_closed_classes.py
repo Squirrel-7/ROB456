@@ -37,6 +37,7 @@ class DoorGroundTruth:
         #           (the transition table)
         #.         - set to uniform probabilities initially
         # YOUR CODE HERE
+        ...
 
     def set_probability(self, door_initial_state : bool, action : str, door_final_state : bool, prob : float):
         """Set the probability that the door will be in the final state if it started in the initial state and took
@@ -98,6 +99,7 @@ class DoorSensor():
         #.  The methods will be used to set the probabilities to something other than uniform
 
         # YOUR CODE HERE
+        ...
 
     def set_return_true_if_open_probability(self, prob: float):
         """ Set the probability of the sensor returning True if the door is open
