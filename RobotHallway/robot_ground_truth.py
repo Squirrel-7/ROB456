@@ -35,7 +35,7 @@ class RobotGroundTruth:
         # This is a variable (dictionary) with three dictionaries in it
         #  In set_move_* below, you will set what each dictionary is (they're currently empty)
         self.move_probabilities = {"move_left": {}, "move_right": {}, "move_continuous": {}}
-
+        self.move_directions = {"left": -1, "stay":0, "right":1}
         # In the GUI version, these will be called with values from the GUI
         #    These will set the individual dictionaries
         self.set_move_left_probabilities()
@@ -62,6 +62,17 @@ class RobotGroundTruth:
         # Check that the probabilities sum to one and are between 0 and 1
 
         # YOUR CODE HERE
+        
+        self.move_probabilities["move_left"] = {"stay":1- move_left - move_right, "left": move_left, "right": move_right}
+        left = self.move_probabilities["move_left"]
+        
+        prob_sum=0
+        for key, val in left.items():
+            assert(val >= 0 and val <= 1)
+            prob_sum += val
+        # print(prob_sum)
+        assert(np.isclose(prob_sum,1))
+
 
     def set_move_right_probabilities(self, move_left=0.05, move_right=0.8):
         """ Set the three discrete probabilities for moving right (should sum to one and all be positive)
@@ -76,6 +87,17 @@ class RobotGroundTruth:
 
         # YOUR CODE HERE
 
+        
+        self.move_probabilities["move_right"] = {"stay":1- move_left - move_right, "left": move_left, "right": move_right}
+        right = self.move_probabilities["move_right"]
+        
+        prob_sum=0
+        for key, val in right.items():
+            assert(val >= 0 and val <= 1)
+            prob_sum += val
+        # print(prob_sum)
+        assert(np.isclose(prob_sum,1))
+
     def set_move_continuos_probabilities(self, sigma=0.1):
         """ Set the noise for continuous movement
         Note - mean is zero for this assignment
@@ -86,8 +108,11 @@ class RobotGroundTruth:
         #   Set self.move_probabilities["move_continuous"] = {...} to be a dictionary with the above probabilities
         # Check that sigma is positive
 
-        # YOUR CODE HERE
 
+
+        # YOUR CODE HERE
+        assert(sigma > 0)
+        self.move_probabilities["move_continuous"] = sigma
     # Just a helper function to place robot in middle of bin
     def _adjust_middle_of_bin(self, n_divs):
         """ Helper function to place robot in middle of bin
@@ -133,8 +158,17 @@ class RobotGroundTruth:
         # GUIDE:
         #  Set step_dir to -1 (left), 0 (stay put) or 1 (right) based on sampling the move_left variable
         step_dir = 0
-
+        zero_to_one = np.random.uniform()
         # YOUR CODE HERE
+        left = self.move_probabilities["move_left"]
+        run_sum = 0
+        for key, val in left.items():
+            run_sum += val
+            if run_sum >= zero_to_one:
+                step_dir = self.move_directions[key]
+                break
+        
+
 
         # This returns the actual move amount, clamped to 0, 1
         #   i.e., don't run off the end of the hallway
@@ -149,7 +183,15 @@ class RobotGroundTruth:
         # Set step_dir to -1 (left), 0 (stay put) or 1 (right) based on sampling the move_right variable
         step_dir = 0
 
+        zero_to_one = np.random.uniform()
         # YOUR CODE HERE
+        right = self.move_probabilities["move_right"]
+        run_sum = 0
+        for key, val in right.items():
+            run_sum += val
+            if run_sum >= zero_to_one:
+                step_dir = self.move_directions[key]
+                break
 
         return self._move_clamped_discrete(step_dir * step_size)
 
@@ -160,7 +202,10 @@ class RobotGroundTruth:
 
         # Kalman assignment
         # GUIDE Set noisy_amount to be the amount to move, plus noise
-        noisy_amount = amount
+        sigma = self.move_probabilities["move_continuous"]
+        
+        noisy_amount = amount + np.random.normal(0, sigma)
+
 
         # YOUR CODE HERE
 

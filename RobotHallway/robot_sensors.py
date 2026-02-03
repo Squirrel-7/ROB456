@@ -23,7 +23,8 @@ class RobotSensors:
 
         # GUIDE: Create the variable to store the probabilities
         # YOUR CODE HERE
-
+        self.door_probs = np.zeros(shape = (2,2), dtype= "float")
+        self.dist_probs = {"std_dev": 0}
         # In the GUI version, these will be called with values from the GUI after the RobotSensors instance
         #   has been created
         # Actually SET the values for the dictionaries
@@ -40,6 +41,14 @@ class RobotSensors:
         #  Reminder: You should have created the variable to hold these values in the __init__ method above
         #  Second note: all variables should be referenced with self.
         # YOUR CODE HERE
+        
+        self.door_probs[0,0] = 1- in_prob_see_door_if_not_door
+        self.door_probs[0,1] = in_prob_see_door_if_not_door
+        self.door_probs[1,0] = 1- in_prob_see_door_if_door
+        self.door_probs[1,1] = in_prob_see_door_if_door
+        
+        # print(self.door_probs)
+        
 
     def set_distance_wall_sensor_probabilities(self, sigma=0.1):
         """ Setup the wall sensor probabilities (store them in the dictionary)
@@ -49,6 +58,9 @@ class RobotSensors:
         # Kalman and particle filter assignment
         # GUIDE: Store the Gaussian (reminder, mean for location is zero)
         # YOUR CODE HERE
+        assert(sigma > 0)
+        self.dist_probs["std_dev"] = sigma
+
 
     def query_door(self, robot_gt:RobotGroundTruth, world_gt:WorldGroundTruth):
         """ Query the door sensor
@@ -63,16 +75,21 @@ class RobotSensors:
         #  Use this to determine which random variable to use
         # is_in_front_of_door is a Boolean, which is True if the actual robot is in front of an actual door
         is_in_front_of_door = world_gt.is_location_in_front_of_door(robot_gt.robot_loc)
-
+        is_in_front_of_door = int(is_in_front_of_door)
         # GUIDE:
         #  This is the place where you need a 4-way if statement
         #   First if statement: Is the robot in front of the door?
         # STEP 1 - generate a random number between 0 and 1
+        
         # STEP 2 - use the random number (and your first if statement) to determine if you should return True or False
         # Note: Step 2 is just the sample_boolean code from your probabilities assignment
         
         # YOUR CODE HERE
-
+        zero_to_one = np.random.uniform()
+        thinks_door = False
+        if zero_to_one <= self.door_probs[is_in_front_of_door, 1]:
+            thinks_door = True
+        return(thinks_door)
     def query_distance_to_wall(self, robot_gt: RobotGroundTruth):
         """ Return a distance reading (with correct noise) of the robot's location
         This returns the estimated robot's location by measuring the distance to the left/right walls - i.e., it
@@ -84,6 +101,12 @@ class RobotSensors:
         # GUIDE: Return the distance to the wall (with noise)
         #  This is the Gaussian assignment from your probabilities homework
         # YOUR CODE HERE
+        sigma = self.dist_probs['std_dev']
+        random_noise = np.random.normal(0, sigma)
+
+        tru_loc = robot_gt.robot_loc
+        return(tru_loc + random_noise)
+        
 
 
 def test_discrete_sensors(b_print=True):
