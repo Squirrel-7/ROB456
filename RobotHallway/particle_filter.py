@@ -55,8 +55,8 @@ class ParticleFilter:
     def update_particles_move_continuous(self, robot_ground_truth, amount):
         """ Update state estimation based on sensor reading
         See Assignment slides for a pointer to the lecture notes
-        @param robot_sensors - for mu/sigma of wall sensor
-        @param dist_reading - distance reading returned by sensor"""
+        @param robot_ground_truth - for mu/sigma of wall sensor
+        @param amount - the amount actually moved"""
 
         # GUIDE
         #   For each particle, move it by the given amount PLUS some noise, drawn from the robot_ground_truth_syntax noise model
